@@ -3,8 +3,8 @@ from .base import BaseDiagram
 from .base import BaseProcessor
 from subprocess import Popen as execute, PIPE, STDOUT, call
 from os.path import abspath, dirname, exists, join
-from tempfile import NamedTemporaryFile
 from platform import system
+
 
 IS_MSWINDOWS = (system() == 'Windows')
 CREATE_NO_WINDOW = 0x08000000  # See MSDN, http://goo.gl/l4OKNe
@@ -12,9 +12,10 @@ EXTRA_CALL_ARGS = {'creationflags': CREATE_NO_WINDOW} if IS_MSWINDOWS else {}
 
 
 class PlantUMLDiagram(BaseDiagram):
-    def __init__(self, processor, sourceFile, text):
-        super(PlantUMLDiagram, self).__init__(processor, sourceFile, text)
-        self.file = NamedTemporaryFile(prefix=sourceFile, suffix='.png', delete=False)
+    def __init__(self, processor, sourceFile, targetFile, text):
+        super(PlantUMLDiagram, self).__init__(processor, sourceFile, targetFile, text)
+        self.file = open(targetFile+".png", 'w')
+        print("Show temp file name: %r" % self.file)
 
     def generate(self):
         command = [
@@ -49,7 +50,7 @@ class PlantUMLDiagram(BaseDiagram):
 
 class PlantUMLProcessor(BaseProcessor):
     DIAGRAM_CLASS = PlantUMLDiagram
-    PLANTUML_VERSION = 8024
+    PLANTUML_VERSION = 8047
     PLANTUML_VERSION_STRING = 'PlantUML version %s' % PLANTUML_VERSION
 
     def load(self):
@@ -92,7 +93,7 @@ class PlantUMLProcessor(BaseProcessor):
             raise Exception('PlantUML does not appear functional')
 
     def find_plantuml_jar(self):
-        self.plantuml_jar_file = 'plantuml-%s.jar' % (self.PLANTUML_VERSION,)
+        self.plantuml_jar_file = 'plantuml.%s.jar' % (self.PLANTUML_VERSION,)
         self.plantuml_jar_path = None
 
         self.plantuml_jar_path = abspath(
